@@ -38,14 +38,12 @@ bool check()
 		}
 	}while(true);
 }
-
-int wait_and_add_current_simple_digit_to_vector(state_sdigit_type& state_sd, vector <unsigned int>& iResultIn)
+int add_current_simple_digit_to_vector(state_sdigit_type& state_sd, vector <unsigned int>& iResultIn)
 {
 	while(!state_sd.not_empty_digit)
 	{
-		Sleep(100);
+		Sleep(10);
 	}
-	lock_guard<mutex> guard(iQueueMutex);
 	iResultIn.push_back(state_sd.simple_digit);
 	state_sd.not_empty_digit = false;
 
@@ -131,7 +129,7 @@ int main()
 	cout << "2. Несколько\n";
 	cin >> iCountThreads;
 
-	thread wait_and_adding_sd(wait_and_add_current_simple_digit_to_vector, std::ref(curren), std::ref(iResult));
+	thread wait_and_adding_sd(add_current_simple_digit_to_vector, std::ref(curren), std::ref(iResult));
 	wait_and_adding_sd.detach();
 
 	switch (iCountThreads)
