@@ -8,16 +8,6 @@
 
 using namespace std;
 const int THREAD_MAX = 8;
-unsigned int iUpperLimitCounter = 100;
-//    unsigned int iLimitCounter = SIZE_MAX;
-unsigned int const LOWER_LIMIT_COUNTER = 3;
-	struct state_sdigit_type
-	{
-		unsigned int simple_digit;
-		bool not_empty_digit;
-	} curren;
-
-
 int iQueue = 0;
 mutex iQueueMutex;
 unsigned int iAllResult = 0;
@@ -38,49 +28,27 @@ bool check()
 		}
 	}while(true);
 }
-int add_current_simple_digit_to_vector(state_sdigit_type& state_sd, vector <unsigned int>& iResultIn)
-{
-	while(!state_sd.not_empty_digit)
-	{
-		Sleep(10);
-	}
-	iResultIn.push_back(state_sd.simple_digit);
-	state_sd.not_empty_digit = false;
 
-	return 0;
-}
 
-int multiple_calculate_simple_digit(unsigned int& new_digit, state_sdigit_type& state_sd, vector <unsigned int>& iResultIn)
+int multiple_calculate_simple_digit(unsigned int& new_digit, vector <unsigned int>& iResultIn)
 {	
     bool x = false;	
-	for(unsigned int i = 3; i*2 <= new_digit; i++)
+	for(unsigned int i = 3; i <= new_digit/2; i++)
 	{
 		if(!(new_digit%i))
 		{
 			x = true;
-			lock_guard<mutex> guard(iQueueMutex);
-			cout << new_digit << " - it's not a simple digit" << endl;
 			break;
 		}
     }
+
+	lock_guard<mutex> guard(iQueueMutex);
 	if(!x)
 	{
-		lock_guard<mutex> guard(iQueueMutex);
-		while(state_sd.not_empty_digit)
-		{
-			Sleep(20);
-		}
-		state_sd.simple_digit = new_digit;
-		state_sd.not_empty_digit = true;
+		iResultIn.push_back(new_digit);
+		iAllResult++;
+		cout << new_digit << " - new_simple digit" << endl;
 	}
-
-	//lock_guard<mutex> guard(iQueueMutex);
-	//if(!x)
-	//{
-	//	iResultIn.push_back(new_digit);
-	//	iAllResult++;
-	//	cout << new_digit << " - new simple digit" << endl;
-	//}
 	--iQueue;
 
 	return 0;
@@ -117,20 +85,16 @@ int main()
 {   
 	setlocale(LC_CTYPE, "rus");
     vector <unsigned int> iResult;
-
-	curren.not_empty_digit = false;
-	curren.simple_digit = 0;
-
+//    unsigned int iLimitCounter = SIZE_MAX;
+	unsigned int iUpperLimitCounter = 100;
+	unsigned int iLowerLimitCounter = 5;
 	int iCountThreads = 0;
 
-	cout << "Поиск всех простых чисел от  "<< LOWER_LIMIT_COUNTER << " до " << iUpperLimitCounter <<"\n" << endl;
+	cout << "Поиск всех простых чисел от  "<< iLowerLimitCounter << " до " << iUpperLimitCounter <<"\n" << endl;
 	cout << "Ищем в один поток или несколько?\n";
 	cout << "1. Один\n";
 	cout << "2. Несколько\n";
 	cin >> iCountThreads;
-
-	thread wait_and_adding_sd(add_current_simple_digit_to_vector, std::ref(curren), std::ref(iResult));
-	wait_and_adding_sd.detach();
 
 	switch (iCountThreads)
 	{
@@ -153,12 +117,12 @@ int main()
 		{
 			iResult.push_back(3);
 			iAllResult++;
-			for(unsigned int i = LOWER_LIMIT_COUNTER; i <= iUpperLimitCounter; i+=2)
+			for(unsigned int i = iLowerLimitCounter; i <= iUpperLimitCounter; i+=2)
 			{
 				//cout << iQueue << "   ";
 				if(check())
 				{
-					thread calcThread(multiple_calculate_simple_digit, std::ref(i), std::ref(curren), std::ref(iResult));
+					thread calcThread(multiple_calculate_simple_digit, std::ref(i), std::ref(iResult));
 					calcThread.detach();
 					//calcThread.join();
 				}
